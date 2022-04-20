@@ -1,0 +1,186 @@
+{
+  "publisher": "maxonc4dsdk",
+  "license": "Apache-2.0",
+  "name": "cinema4d-connector",
+  "icon": "image/maxon_logo.png",
+  "displayName": "Cinema 4D Connector",
+  "description": "Provides helper tool to developer Cinema 4D scripts and plugins.",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PluginCafe/Cinema4D_Connector-VisualStudioCode_Extension"
+  },
+  "bugs": {
+    "url": "https://github.com/PluginCafe/Cinema4D_Connector-VisualStudioCode_Extension/issues"
+  },
+  "engines": {
+    "vscode": "^1.62.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:cinema4d-connector.load_template_script",
+    "onCommand:cinema4d-connector.get_workspace",
+    "onCommand:cinema4d-connector.set_script_content",
+    "onCommand:cinema4d-connector.load_in_script_manager",
+    "onCommand:cinema4d-connector.execute_in_c4d",
+    "onCommand:cinema4d-connector.statubar_toogle",
+    "onFileSystem:c4dfs",
+    "onView:c4d",
+    "onStartupFinished"
+  ],
+  "main": "./out/main.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "c4dstr",
+        "extensions": [
+          ".str"
+        ]
+      },
+      {
+        "id": "res",
+        "extensions": [
+          ".res"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "c4dstr",
+        "scopeName": "source.c4dstr",
+        "path": "./syntaxes/str.tmLanguage.json"
+      },
+      {
+        "language": "res",
+        "scopeName": "source.res",
+        "path": "./syntaxes/res.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "cinema4d-connector.load_in_script_manager",
+        "title": "Load Script in Script Manager",
+        "category": "C4D",
+        "when": "!isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+      },
+      {
+        "command": "cinema4d-connector.execute_in_c4d",
+        "title": "Execute in Cinema 4D as a Script in Script Manager",
+        "icon": "$(live-share)",
+        "category": "C4D",
+        "when": "!isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+      },
+      {
+        "command": "cinema4d-connector.debug_in_c4d",
+        "title": "Debug in Cinema 4D as a Script in Script Manager",
+        "icon": "$(debug-console)",
+        "category": "C4D",
+        "when": "!isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+      },
+      {
+        "command": "cinema4d-connector.statubar_toogle",
+        "title": "Toggle Connection with Cinema 4D",
+        "category": "C4D"
+      },
+      {
+        "command": "cinema4d-connector.load_template_script",
+        "title": "Load Cinema 4D Script Template",
+        "category": "C4D"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Cinema 4D",
+        "properties": {
+          "c4d.path": {
+            "scope": "application",
+            "type": "string",
+            "order": 0,
+            "description": "Path to the directory used containing the python scripts used as templates."
+          },
+          "c4d.ip": {
+            "scope": "application",
+            "type": "string",
+            "default": "127.0.0.1",
+            "format": "ipv4",
+            "order": 1,
+            "description": "IP address used to connect to Cinema 4D."
+          },
+          "c4d.port": {
+            "scope": "application",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 7788,
+            "order": 2,
+            "description": "Port used to connect to Cinema 4D."
+          },
+          "c4d.template": {
+            "scope": "application",
+            "type": "string",
+            "order": 3,
+            "description": "Path to the directory containing the python scripts used as template."
+          }
+        }
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cinema4d-connector.debug_in_c4d",
+        "key": "shift+f5",
+        "mac": "shift+f5",
+        "when": "!inDebugMode && !isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+      },
+      {
+        "command": "cinema4d-connector.execute_in_c4d",
+        "key": "ctrl+shift+f5",
+        "mac": "cmd+shift+f5",
+        "when": "!inDebugMode && !isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+          {
+            "command": "cinema4d-connector.execute_in_c4d",
+            "group": "c4d@0",
+            "when": "!isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+          },
+          {
+            "command": "cinema4d-connector.debug_in_c4d",
+            "group": "c4d@1",
+            "when": "!inDebugMode && !isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
+          }
+        ]
+      }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.4",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "14.x",
+    "@types/vscode": "^1.62.0",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "@vscode/test-electron": "^1.6.2",
+    "esbuild": "^0.14.10",
+    "eslint": "^8.1.0",
+    "glob": "^7.1.7",
+    "mocha": "^9.1.3",
+    "typescript": "^4.4.4"
+  },
+  "extensionDependencies": [
+    "ms-python.python",
+    "ms-python.vscode-pylance"
+  ],
+  "dependencies": {
+    "@types/ws": "^8.2.1",
+    "ws": "^8.3.0"
+  }
+}

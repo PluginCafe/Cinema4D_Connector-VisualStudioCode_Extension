@@ -1,0 +1,60 @@
+{
+  "scopeName": "source.c4dstr",
+  "patterns": [{ "include": "#expression" }],
+  "repository": {
+    "expression": {
+      "patterns": [
+        { "include": "#paren-expression" },
+        { "include": "#entry" },
+        { "include": "#comments" },
+        { "include": "#multiline-comments" },
+        { "include": "#stringtable" },
+        { "include": "#err" }
+      ]
+    },
+    "stringtable": {
+      "match": "STRINGTABLE\\s+(\\w+)",
+      "name": "entity.name.tag.c4dstr"
+    },
+    "paren-expression": {
+      "begin": "{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.paren.open.c4dstr" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.paren.close.c4dstr" }
+      },
+      "name": "expression.group",
+      "patterns": [{ "include": "#expression" }, {"include": "#err"}]
+    },
+    "entry": {
+      "match": "(\\w+)\\s*(?<quote>\"|\\')(.*)\\k<quote>\\s*;",
+      "captures": {
+        "1": { "name": "entity.name.tag.c4dstr" },
+        "2": { "name": "punctuation.quote.open.c4dstr" },
+        "3": { "name": "string.quoted.double.c4dstr" },
+        "4": { "name": "punctuation.quote.close.c4dstr" }
+      }
+    },
+    "err":{
+      "match": ".",
+      "name": "invalid.illegal.c4dstr"
+    },
+    "comments": {
+      "match": "//.*$",
+      "name": "comment.block.c4dstr"
+    },
+    "multiline-comments": {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.comment.begin.c4dstr" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.comment.end.c4dstr" }
+      },
+      "name": "comment.block.c4dstr"
+    }
+  }
+}

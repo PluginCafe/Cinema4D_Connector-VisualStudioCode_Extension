@@ -1,0 +1,49 @@
+{
+  "scopeName": "source.res",
+  "patterns": [{ "include": "#expression" }],
+  "repository": {
+    "expression": {
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#multiline-comments" },
+        { "include": "#container" },
+        { "include": "#types" },
+        { "include": "#flags" }
+      ]
+    },
+    "container": {
+      "match": "(CONTAINER|GROUP|CYCLE)\\s+(\\w+)",
+      "captures": {
+        "1": { "name": "entity.name.tag.res" },
+        "2": { "name": "punctuation.quote.open" }
+      }
+    },
+    "types": {
+      "match": "(\\s+)(BOOL|BASETIME|BITMAPBUTTON|BUTTON|COLOR|DATETIME|DYNAMIC|FILENAME|FONT|GRADIENT|HYPERLINK|IN_EXCLUDE|LINK|LONG|MATRIX|PRIORITY|REAL|SEPARATOR|SHADERLINK|SPLINE|STATICTEXT|STRING|TEXTURE|VECTOR)\\s*",
+      "captures": {
+        "2": { "name": "entity.name.tag.res" }
+      }
+    },
+    "flags": {
+      "match": "(\\s+)(ACCEPT|ALPHA|ANIM|COLOR|COLUMNS|CREATEPORT|CUSTOMGUI|DATE_CONTROL|DEFAULT|DIRECTORY|EDIT_H|EDIT_V|EDITPORT|HIDDEN|FIT_H|FIT_V|HIDE|ICC_BASEDOCUMENT|INCLUDE|INIT_STATE|INPORT|IS_LINK|LINE|LINK_DEST|MATEDCOLUMNS|MAX|MAXEX|MAXPORTS|MAXSLIDER|MIN|MINEX|MINPORTS|MINSIZE_H|MINSLIDER|MULTIPLE|NAME|NEEDCONNECTION|NO_SECONDS|NOCAMERA|NOTMOVABLE|NOW_BUTTON|NUM_FLAGS|OPEN|OUTPORT|PAGE|PARENTCOLLAPSE|PARENTID|PARENTMSG|PYTHON|PORTONLY|REFUSE|SAVE|SCALE_H|SCALE_V|SHOW|SHOW_LABELS|SHOWGRID_H|SHOWGRID_V|STATIC_TEXT|STATICPORT|STEP|TIME_CONTROL|UNIT|X_MAX|X_MIN|X_STEPS|X_TEXT|Y_MAX|Y_MIN|Y_STEPS|Y_TEXT)(\\s*|;)",
+      "captures": {
+        "2": { "name": "variable.res" }
+      }
+    },
+    "comments": {
+      "match": "//.*$",
+      "name": "comment.block.res"
+    },
+    "multiline-comments": {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.comment.begin.res" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.comment.end.res" }
+      },
+      "name": "comment.block.res"
+    }
+  }
+}

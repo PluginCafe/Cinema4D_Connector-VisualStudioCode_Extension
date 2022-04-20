@@ -1,0 +1,56 @@
+name: Publish new release
+
+on:
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: 'NodeJs Version to use'
+        default: '14.18.2'
+        required: true
+        
+jobs:
+  build_release_vsix:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@master
+          
+    - name: Setup Node.js ${{ github.event.inputs.node_version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ github.event.inputs.node_version }}
+        
+    - name: Run npm ci
+      run: npm ci --prefer-offline
+      shell: bash
+      
+    - name: Install vsce
+      run: npm i -g vsce
+      shell: bash
+      
+    - name: get-npm-version
+      id: package-version
+      uses: martinbeentjes/npm-get-version-action@main
+
+    - name: Compile and Build VSIX
+      run: vsce package -o cinema4d-connector-${{ steps.package-version.outputs.current-version}}.vsix
+      shell: bash
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: cinema4d-connector-${{ steps.package-version.outputs.current-version}}
+        release_name: Release cinema4d-connector-${{ steps.package-version.outputs.current-version}}
+        draft: false
+        prerelease: false
+        
+    - name: Upload artifact
+      uses: AButler/upload-release-assets@v2.0
+      with:
+        files: '*.vsix'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        release-tag: cinema4d-connector-${{ steps.package-version.outputs.current-version}}
+        
