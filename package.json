@@ -98,7 +98,7 @@
             "scope": "application",
             "type": "string",
             "order": 0,
-            "description": "Path to the directory used containing the python scripts used as templates."
+            "description": "Path to the Cinema 4D directory used for autocompletion."
           },
           "c4d.ip": {
             "scope": "application",
