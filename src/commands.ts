@@ -37,8 +37,17 @@ export function setC4dScriptContentCmd(data: SET_SCRIPT_CONTENT)
         else if (data.script_path.startsWith("file:/"))
         {
             let newPath: vscode.Uri = vscode.Uri.file(data.script_path.slice("file:///".length));
+            let buffer: Buffer = Buffer.from(data.value);
+
             vscode.workspace.openTextDocument(newPath).then(doc => 
                 {
+                    const edit = new vscode.WorkspaceEdit();
+                    edit.replace(
+                        doc.uri,
+                        new vscode.Range(0, 0, doc.lineCount, 0),
+                        buffer.toString());
+            
+                    vscode.workspace.applyEdit(edit);
                     vscode.window.showTextDocument(doc);
                 });
         }
