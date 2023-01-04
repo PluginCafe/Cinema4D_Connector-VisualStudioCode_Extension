@@ -121,12 +121,27 @@ export async function DebugScriptContentInScriptManager()
     { throw new Error("Unable to retrieve Cinema 4D path"); }
 
     let pythonPath = os.platform() === 'win32'?
-        path.posix.join(c4dPath, "resource", "modules", "python", "libs", "python39.win64.framework", "python.exe")
+        path.join(c4dPath, "resource", "modules", "python", "libs", "python39.win64.framework", "python.exe")
         :
-        path.posix.join(c4dPath, "resource", "modules", "python", "libs", "python39.macos.framework", "python", "Contents", "MacOS", "python")
+        path.join(c4dPath, "resource", "modules", "python", "libs", "python39.macos.framework", "python", "Contents", "MacOS", "python")
         ;
+
+    if (!fs.existsSync(pythonPath))
+        { pythonPath = os.platform() === 'win32'?
+        path.join(c4dPath, "resource", "modules", "python", "libs", "python310.win64.framework", "python.exe")
+        :
+        path.join(c4dPath, "resource", "modules", "python", "libs", "python310.macos.framework", "python", "Contents", "MacOS", "python")
+        ;}
+
+    if (!fs.existsSync(pythonPath))
+    {  throw new Error("Incorrect path for the c4d python executable, debugger will not work."); }
     
-    let debugAdapterPath = path.posix.join(c4dPath!, "resource", "modules", "python", "libs", "python39", "debugpy", "adapter");
+    let debugAdapterPath = path.join(c4dPath!, "resource", "modules", "python", "libs", "python39", "debugpy", "adapter");
+    if (!fs.existsSync(debugAdapterPath))
+    { debugAdapterPath = path.join(c4dPath!, "resource", "modules", "python", "libs", "python310", "debugpy", "adapter"); }
+
+    if (!fs.existsSync(pythonPath))
+    {  throw new Error("Incorrect path for the debugpy, debugger will not work."); }
 
     let configName = `Python attached to Cinema 4D - PID ${pid}`;
     let configuration: vscode.DebugConfiguration = 
@@ -169,7 +184,7 @@ export async function LoadTemplateScript()
 
     fs.readdirSync(templatePath).forEach(fileName => 
     {
-        let file = path.posix.join(templatePath, fileName);
+        let file = path.join(templatePath, fileName);
         if (fileName.endsWith(".py"))
         {
             fileNames.push(new FileItem(file));

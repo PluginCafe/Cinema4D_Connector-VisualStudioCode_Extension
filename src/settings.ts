@@ -59,6 +59,8 @@ function setPythonExtraPath(inputPath?: string)
 
     let pathToAdd = path.join(c4dPath, "resource", "modules", "python", "libs", "python39");
     if (!fs.existsSync(pathToAdd))
+    { pathToAdd = path.join(c4dPath, "resource", "modules", "python", "libs", "python310"); }
+    if (!fs.existsSync(pathToAdd))
     {  throw new Error("Incorrect path for c4d.path, autocompletion will not work"); }
 
     let pathToAddC4D = path.join(pathToAdd, "c4d");
@@ -166,7 +168,7 @@ export function GetAndStoreTemplateDir()
         let extension = vscode.extensions.getExtension("maxonc4dsdk.cinema4d-connector");
         assert(extension !== undefined);
     
-        templatePath = path.posix.join(extension.extensionPath, "script_template");
+        templatePath = path.join(extension.extensionPath, "script_template");
         if (!templatePath || !fs.existsSync(templatePath))
         {
             throw new Error("Can't compute script template.");
