@@ -2,7 +2,7 @@
 
 Provides an extension for VS Code to exchange code between the Script Manager of Cinema 4D and VS Code.
 
-This extension is only functional with the [Cinema 4D Plugin](https://github.com/PluginCafe/Cinema4D_Connector-Cinema4D_Plugin) for Visual Studio Code counterpart plugin. The extension also provides syntax highlighting for resource files and string resources as used by Cinema 4D, as well as other tools to assist Cinema 4D plugins and scripts developers.
+The extension also provides syntax highlighting for resource files and string resources as used by Cinema 4D, as well as other tools to assist Cinema 4D plugins and scripts developers.
 
 All the commands of this extension can be found by pressing `ctrl+shift+P` and searching for `C4D`.
 
@@ -10,9 +10,11 @@ All the commands of this extension can be found by pressing `ctrl+shift+P` and s
 
 ## Installation
 
-To use all the features it is necessary to install the following two extensions:
+To use all the features it is necessary to install:
 
-- The Cinema 4D plugin, downloadable [here](https://github.com/PluginCafe/Cinema4D_Connector-Cinema4D_Plugin/releases). Once downloaded, extract the archive to the Cinema 4D S26+ plugins folder. You then need to activate the extension in the Cinema 4D preferences in the `Extensions | Code Exchange` menu, activate the WebSocket Json checkbox.
+- From Cinema 4D 2023.2 you do not need to install any Cinema 4D Plugins, for more information please read the [Cinema 4D Connector documentation](https://help.maxon.net/c4d/en-us/#html/5896.html#codeexchangesendtoIDE).
+
+- From Cinema 4D S26+ to Cinema 2023.1 you need the Cinema 4D plugin, downloadable [here](https://github.com/PluginCafe/Cinema4D_Connector-Cinema4D_Plugin/releases). Once downloaded, extract the archive to the Cinema 4D S26+ plugins folder. You then need to activate the extension in the Cinema 4D preferences in the `Extensions | Code Exchange` menu, activate the WebSocket Json checkbox.
 
 - The `Cinema 4D Connector` extension for Visual Studio code, directly accessible in the Visual Studio code marketplace, or download it [here](https://github.com/PluginCafe/Cinema4D_Connector-VisualStudioCode_Extension/releases).
 
