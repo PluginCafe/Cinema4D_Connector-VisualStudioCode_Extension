@@ -4,13 +4,14 @@ import * as path from "path";
 import { errorHandler, errShowErrorMessage as showErrorMessage} from './errors';
 import { client } from "./async_client";
 import { setupStatusBarClientListener } from "./statusbar";
-import { posix } from "path";
+import { getPythonFolder } from './file_system';
 import assert = require('assert');
 
 export const C4D_PATH_CONFIG_ID     = "c4d.path";
 export const C4D_IP_CONFIG_ID       = "c4d.ip";
 export const C4D_PORT_CONFIG_ID     = "c4d.port";
 export const C4D_TEMPLATE_CONFIG_ID = "c4d.template";
+export const C4D_BRING_IN_FRONT_CONFIG_ID = "c4d.bringconsoleinfront";
 export const C4D_CALL_GET_PATH_ON_CONNECT_ID = 'c4d.call_get_path_on_connect';
 
 const PYTHON_AUTOCOMPLETE_EXTRA_PATH_CONFIG_ID = "python.autoComplete.extraPaths";
@@ -57,11 +58,9 @@ function setPythonExtraPath(inputPath?: string)
     if (!c4dPath || !fs.existsSync(c4dPath))
     { return; }
 
-    let pathToAdd = path.join(c4dPath, "resource", "modules", "python", "libs", "python39");
+    let pathToAdd = path.join(getPythonFolder(c4dPath));
     if (!fs.existsSync(pathToAdd))
-    { pathToAdd = path.join(c4dPath, "resource", "modules", "python", "libs", "python310"); }
-    if (!fs.existsSync(pathToAdd))
-    {  throw new Error("Incorrect path for c4d.path, autocompletion will not work"); }
+    {  throw new Error("Unable to Find Python path for c4d.path, autocompletion will not work"); }
 
     let pathToAddC4D = path.join(pathToAdd, "c4d");
     if (!fs.existsSync(pathToAddC4D))
@@ -168,7 +167,7 @@ export function GetAndStoreTemplateDir()
         let extension = vscode.extensions.getExtension("maxonc4dsdk.cinema4d-connector");
         assert(extension !== undefined);
     
-        templatePath = path.join(extension.extensionPath, "script_template");
+        templatePath = path.posix.join(extension.extensionPath, "script_template");
         if (!templatePath || !fs.existsSync(templatePath))
         {
             throw new Error("Can't compute script template.");

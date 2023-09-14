@@ -1,5 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as fs from 'fs';
 import { client } from './async_client';
 import { errShowErrorMessage } from './errors';
 
@@ -283,3 +285,83 @@ export class C4DFS implements vscode.FileSystemProvider
 }
 
 export const c4dFs = new C4DFS();
+
+export function getPythonFolder(c4dPath: string)
+{
+    let pyVersionToUse = 39;
+
+    let pyLibs = path.posix.join(c4dPath, "resource", "modules", "python", "libs").replace(/\\/g, "/");
+    const readDirPyLibs = fs.readdirSync(pyLibs);
+
+    readDirPyLibs.every((element: string) => {
+        const fullpath = path.posix.join(pyLibs, element);
+        if (!fs.lstatSync(fullpath).isDirectory())
+            {return true;}
+
+        const prefix = "python";
+
+        if (!element.startsWith(prefix))
+            {return true;}
+        
+        const startIndex = element.indexOf(prefix) + prefix.length;
+        let endIndex = startIndex;
+        for (let index = endIndex; index < element.length; index++) 
+        {
+            if (element.charAt(index) === ".")
+                {break;}
+
+            endIndex++;
+        }
+
+        const numberPart = element.slice(startIndex, endIndex);
+        pyVersionToUse = parseInt(numberPart, 10);
+        return false;
+    });
+
+    return path.posix.join(pyLibs, `python${pyVersionToUse}`);
+}
+
+export function getPythonExecutablePath(c4dPath: string)
+{
+    let pyVersionToUse = 39;
+
+    let pyLibs = path.posix.join(c4dPath, "resource", "modules", "python", "libs").replace(/\\/g, "/");
+    const readDirPyLibs = fs.readdirSync(pyLibs);
+
+    readDirPyLibs.every((element: string) => {
+        const fullpath = path.posix.join(pyLibs, element);
+        if (!fs.lstatSync(fullpath).isDirectory())
+            {return true;}
+
+        const prefix = "python";
+
+        if (!element.startsWith(prefix))
+            {return true;}
+        
+        const startIndex = element.indexOf(prefix) + prefix.length;
+        let endIndex = startIndex;
+        for (let index = endIndex; index < element.length; index++) 
+        {
+            if (element.charAt(index) === ".")
+                {break;}
+
+            endIndex++;
+        }
+
+        const numberPart = element.slice(startIndex, endIndex);
+        pyVersionToUse = parseInt(numberPart, 10);
+        return false;
+    });
+
+
+    if (os.platform() === 'win32')
+    {
+        if (pyVersionToUse >= 311)
+            {return path.posix.join(pyLibs, "win64", "python.exe");}
+        
+        return path.posix.join(pyLibs, `python${pyVersionToUse}.win64.framework`, "python.exe");
+    }
+
+    // Mac OS
+    return path.posix.join(pyLibs, `python${pyVersionToUse}.macos.framework`, "python", "Contents", "MacOS", "python");
+}

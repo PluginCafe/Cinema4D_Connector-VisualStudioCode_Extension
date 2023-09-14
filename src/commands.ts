@@ -3,8 +3,8 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { client, SET_SCRIPT_CONTENT, fixPath } from './async_client';
-import { c4dFs } from './file_system';
-import { GetAndStoreTemplateDir } from './settings';
+import { c4dFs, getPythonFolder, getPythonExecutablePath } from './file_system';
+import { GetAndStoreTemplateDir, C4D_BRING_IN_FRONT_CONFIG_ID } from './settings';
 import { errShowErrorMessage } from './errors';
 
 import assert = require('assert');
@@ -74,7 +74,10 @@ export function addToC4DConsoleCmd(data: string)
         { throw new Error("Failed to retrieve Cinema 4D Output channel"); }
         
         c4dOutputChannel.append(data);
-        c4dOutputChannel.show();
+
+        let bringInFront = vscode.workspace.getConfiguration().get<boolean>(C4D_BRING_IN_FRONT_CONFIG_ID);
+        if (bringInFront)
+            {c4dOutputChannel.show();}
     }
     catch (err: any)
     {
@@ -120,25 +123,12 @@ export async function DebugScriptContentInScriptManager()
     if (c4dPath === undefined)
     { throw new Error("Unable to retrieve Cinema 4D path"); }
 
-    let pythonPath = os.platform() === 'win32'?
-        path.join(c4dPath, "resource", "modules", "python", "libs", "python39.win64.framework", "python.exe")
-        :
-        path.join(c4dPath, "resource", "modules", "python", "libs", "python39.macos.framework", "python", "Contents", "MacOS", "python")
-        ;
-
-    if (!fs.existsSync(pythonPath))
-        { pythonPath = os.platform() === 'win32'?
-        path.join(c4dPath, "resource", "modules", "python", "libs", "python310.win64.framework", "python.exe")
-        :
-        path.join(c4dPath, "resource", "modules", "python", "libs", "python310.macos.framework", "python", "Contents", "MacOS", "python")
-        ;}
+    let pythonPath = getPythonExecutablePath(c4dPath);
 
     if (!fs.existsSync(pythonPath))
     {  throw new Error("Incorrect path for the c4d python executable, debugger will not work."); }
     
-    let debugAdapterPath = path.join(c4dPath!, "resource", "modules", "python", "libs", "python39", "debugpy", "adapter");
-    if (!fs.existsSync(debugAdapterPath))
-    { debugAdapterPath = path.join(c4dPath!, "resource", "modules", "python", "libs", "python310", "debugpy", "adapter"); }
+    let debugAdapterPath = path.posix.join(getPythonFolder(c4dPath), "debugpy", "adapter");
 
     if (!fs.existsSync(pythonPath))
     {  throw new Error("Incorrect path for the debugpy, debugger will not work."); }
@@ -184,7 +174,7 @@ export async function LoadTemplateScript()
 
     fs.readdirSync(templatePath).forEach(fileName => 
     {
-        let file = path.join(templatePath, fileName);
+        let file = path.posix.join(templatePath, fileName);
         if (fileName.endsWith(".py"))
         {
             fileNames.push(new FileItem(file));
