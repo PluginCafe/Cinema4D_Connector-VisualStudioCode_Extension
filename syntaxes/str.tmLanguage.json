@@ -13,7 +13,7 @@
       ]
     },
     "stringtable": {
-      "match": "STRINGTABLE\\s+(\\w+)",
+      "match": "STRINGTABLE\\s+(\\w*)",
       "name": "entity.name.tag.c4dstr"
     },
     "paren-expression": {

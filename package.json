@@ -5,7 +5,7 @@
   "icon": "image/maxon_logo.png",
   "displayName": "Cinema 4D Connector",
   "description": "Provides helper tool to developer Cinema 4D scripts and plugins.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/PluginCafe/Cinema4D_Connector-VisualStudioCode_Extension"
