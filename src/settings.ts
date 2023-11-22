@@ -138,7 +138,9 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
         return;
     }
 
-    if (!context.globalState.get(C4D_ASK_DEFINE_PATH_ID, false)) {   
+    // By default (aka when not stored) we want it to true
+    let shouldAskPath = context.globalState.get(C4D_ASK_DEFINE_PATH_ID, true);
+    if (!shouldAskPath) {   
         return;
     }
 
@@ -162,14 +164,14 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
                             {
                                 context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, false);
                             }
-                            context.globalState.update(C4D_ASK_DEFINE_PATH_ID, true);
+                            context.globalState.update(C4D_ASK_DEFINE_PATH_ID, false);
                             return ;
                         }
                     });
             }
             else
             {
-                context.globalState.update(C4D_ASK_DEFINE_PATH_ID, true);
+                context.globalState.update(C4D_ASK_DEFINE_PATH_ID, false);
             }
     });
 }
