@@ -5,7 +5,7 @@
   "icon": "image/maxon_logo.png",
   "displayName": "Cinema 4D Connector",
   "description": "Provides helper tool to developer Cinema 4D scripts and plugins.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/PluginCafe/Cinema4D_Connector-VisualStudioCode_Extension"
@@ -20,12 +20,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:cinema4d-connector.load_template_script",
     "onCommand:cinema4d-connector.get_workspace",
     "onCommand:cinema4d-connector.set_script_content",
-    "onCommand:cinema4d-connector.load_in_script_manager",
-    "onCommand:cinema4d-connector.execute_in_c4d",
-    "onCommand:cinema4d-connector.statubar_toogle",
     "onFileSystem:c4dfs",
     "onView:c4d",
     "onStartupFinished"
@@ -74,7 +70,7 @@
       },
       {
         "command": "cinema4d-connector.debug_in_c4d",
-        "title": "Debug in Cinema 4D as a Script in Script Manager",
+        "title": "Debug in Cinema 4D",
         "icon": "$(debug-console)",
         "category": "C4D",
         "when": "!isInDiffEditor && !virtualWorkspace && cinema4d-connector.is_connected_to_c4d"
@@ -100,12 +96,19 @@
             "order": 0,
             "description": "Path to the Cinema 4D directory used for autocompletion."
           },
-          "c4d.ip": {
+          "c4d.updatePath": {
+            "scope": "application",
+            "type": "boolean",
+            "default": true,
+            "order": 1,
+            "markdownDescription": "If checked, the `#c4d.path#` setting will be re-defined for each new connection."
+          },
+          "c4d.IP": {
             "scope": "application",
             "type": "string",
             "default": "127.0.0.1",
             "format": "ipv4",
-            "order": 1,
+            "order": 2,
             "description": "IP address used to connect to Cinema 4D."
           },
           "c4d.port": {
@@ -114,20 +117,37 @@
             "minimum": 1,
             "maximum": 65535,
             "default": 7788,
-            "order": 2,
+            "order": 3,
             "description": "Port used to connect to Cinema 4D."
+          },
+          "c4d.debuggerIP": {
+            "scope": "application",
+            "type": "string",
+            "default": "127.0.0.1",
+            "format": "ipv4",
+            "order": 4,
+            "description": "IP address used to debug Python in Cinema 4D."
+          },
+          "c4d.debuggerPort": {
+            "scope": "application",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 5678,
+            "order": 5,
+            "description": "Port used to debug Python in Cinema 4D."
           },
           "c4d.template": {
             "scope": "application",
             "type": "string",
-            "order": 3,
+            "order": 6,
             "description": "Path to the directory containing the python scripts used as template."
           },
-          "c4d.bringconsoleinfront": {
+          "c4d.bringConsoleInFront": {
             "scope": "application",
             "type": "boolean",
             "default": true,
-            "order": 4,
+            "order": 7,
             "description": "If checked, bring in front the Cinema 4D console each time a new statement appears."
           }
         }

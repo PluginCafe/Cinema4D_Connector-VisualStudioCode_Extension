@@ -5,7 +5,7 @@ on:
     inputs:
       node_version:
         description: 'NodeJs Version to use'
-        default: '14.18.2'
+        default: '17.0.1'
         required: true
         
 jobs:

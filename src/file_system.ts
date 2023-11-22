@@ -363,5 +363,6 @@ export function getPythonExecutablePath(c4dPath: string)
     }
 
     // Mac OS
-    return path.posix.join(pyLibs, `python${pyVersionToUse}.macos.framework`, "python", "Contents", "MacOS", "python");
+    let pythonPath = path.posix.join(pyLibs, `python${pyVersionToUse}.macos.framework`, "python");
+    return pythonPath;
 }

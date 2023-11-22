@@ -5,13 +5,17 @@ import { errorHandler, errShowErrorMessage as showErrorMessage} from './errors';
 import { client } from "./async_client";
 import { setupStatusBarClientListener } from "./statusbar";
 import { getPythonFolder } from './file_system';
+import { DebugScriptContentInScriptManager } from './commands';
 import assert = require('assert');
 
 export const C4D_PATH_CONFIG_ID     = "c4d.path";
-export const C4D_IP_CONFIG_ID       = "c4d.ip";
+export const C4D_SHOULD_UPDATE_PATH_CONFIG_ID     = "c4d.updatePath";
+export const C4D_IP_CONFIG_ID       = "c4d.IP";
 export const C4D_PORT_CONFIG_ID     = "c4d.port";
 export const C4D_TEMPLATE_CONFIG_ID = "c4d.template";
-export const C4D_BRING_IN_FRONT_CONFIG_ID = "c4d.bringconsoleinfront";
+export const C4D_BRING_IN_FRONT_CONFIG_ID = "c4d.bringConsoleInFront";
+export const C4D_DEBUG_IP_CONFIG_ID = "c4d.debuggerIP";
+export const C4D_DEBUG_PORT_CONFIG_ID = "c4d.debuggerPort";
 export const C4D_CALL_GET_PATH_ON_CONNECT_ID = 'c4d.call_get_path_on_connect';
 
 const PYTHON_AUTOCOMPLETE_EXTRA_PATH_CONFIG_ID = "python.autoComplete.extraPaths";
@@ -91,6 +95,11 @@ export function onConfigChange(e: vscode.ConfigurationChangeEvent)
     {
         errorHandler(setPythonExtraPath)();
     }
+    if (e.affectsConfiguration(C4D_SHOULD_UPDATE_PATH_CONFIG_ID))
+    {
+        let shouldUpdateOnConnect = vscode.workspace.getConfiguration().get(C4D_SHOULD_UPDATE_PATH_CONFIG_ID, true);
+        globalState?.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, shouldUpdateOnConnect);
+    }
     if (e.affectsConfiguration(C4D_IP_CONFIG_ID) || e.affectsConfiguration(C4D_PORT_CONFIG_ID))
     {
         client.stop().then((value) =>
@@ -99,7 +108,17 @@ export function onConfigChange(e: vscode.ConfigurationChangeEvent)
             setupStatusBarClientListener();
         }).then(undefined, showErrorMessage);
     }
-
+    if (e.affectsConfiguration(C4D_DEBUG_IP_CONFIG_ID) || e.affectsConfiguration(C4D_DEBUG_PORT_CONFIG_ID))
+    {
+        if (vscode.debug.activeDebugSession?.configuration.name.startsWith("Python attached to Cinema 4D"))
+        {
+            vscode.debug.stopDebugging(vscode.debug.activeDebugSession).then(() => 
+            {   
+                DebugScriptContentInScriptManager();
+            }
+            );
+        }
+    }
 }
 
 export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
@@ -109,21 +128,23 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
 	const C4D_ASK_DEFINE_PATH_ID = 'c4d.path_defined';
 
     globalState = context.globalState;
-	context.globalState.update(C4D_ASK_DEFINE_PATH_ID, false); // WIP to force the popup
-    context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, true);
 	context.globalState.setKeysForSync([C4D_ASK_DEFINE_PATH_ID, C4D_CALL_GET_PATH_ON_CONNECT_ID]);
 
-	let settingDefined = false;
 	let c4dPath = vscode.workspace.getConfiguration().get(C4D_PATH_CONFIG_ID, "");
-    if (context.globalState.get(C4D_ASK_DEFINE_PATH_ID) || fs.existsSync(c4dPath))
+	let shouldUpdateOnConnect = vscode.workspace.getConfiguration().get(C4D_SHOULD_UPDATE_PATH_CONFIG_ID, true);
+    if ((context.globalState.get(C4D_ASK_DEFINE_PATH_ID, false) || fs.existsSync(c4dPath)) && !shouldUpdateOnConnect)
 	{   
         context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, false);
         setPythonExtraPath();
         return;
     }
+    else
+    {
+        context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, true);
+    }
 
     vscode.window.showInformationMessage(
-        "Cinema 4D installation directory should be defined for autocompletion. Do you want to select it?\nIf you do not define it will be defined once connected with Cinema 4D.",
+        "Define the Cinema 4D installation directory for autocompletion and debugger to function.\nIf not defined, it will be automatically set upon connection with Cinema 4D.",
         ...["Yes", "No"]).then((answer) =>
         {
             if (answer === "Yes")
@@ -138,8 +159,10 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
                         if (selection && fs.existsSync(selection[0].fsPath))
                         {
                             setPythonExtraPath(selection[0].fsPath);
-                            settingDefined = true;
-                            context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, false);
+                            if (!shouldUpdateOnConnect)
+                            {
+                                context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, false);
+                            }
                             context.globalState.update(C4D_ASK_DEFINE_PATH_ID, true);
                             return ;
                         }
@@ -158,7 +181,7 @@ export function setPypFileAsPython()
     }
 }
 
-
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function GetAndStoreTemplateDir()
 {
     let templatePath = vscode.workspace.getConfiguration().get<string>(C4D_TEMPLATE_CONFIG_ID);

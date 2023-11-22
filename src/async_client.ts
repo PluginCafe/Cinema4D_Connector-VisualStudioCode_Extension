@@ -191,7 +191,7 @@ export class AsyncClient extends events.EventEmitter
                     {
                         return vscode.workspace.getConfiguration().update(C4D_PATH_CONFIG_ID, path, vscode.ConfigurationTarget.Global);
                     })
-                    .then(undefined, errShowErrorMessage);
+                    .catch(errShowErrorMessage);
                 }
                 resolve();
             };
@@ -474,6 +474,17 @@ export class AsyncClient extends events.EventEmitter
             }));
     }
     
+    async executeScriptInC4d(script: string)
+    {
+        if (!this.isConnected)
+        { return; }
+
+        this._client.send(JSON.stringify({  action: CODEEXCHANGE.IDE2C4D.EXECUTE_SCRIPT, 
+            script_path: "empty",
+            value: script,
+            debug: false,
+            }));
+    }
 }
 
 export const client: AsyncClient = new AsyncClient();

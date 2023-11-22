@@ -4,12 +4,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { client, SET_SCRIPT_CONTENT, fixPath } from './async_client';
 import { c4dFs, getPythonFolder, getPythonExecutablePath } from './file_system';
-import { GetAndStoreTemplateDir, C4D_BRING_IN_FRONT_CONFIG_ID } from './settings';
+import { GetAndStoreTemplateDir, C4D_BRING_IN_FRONT_CONFIG_ID, C4D_DEBUG_PORT_CONFIG_ID, C4D_DEBUG_IP_CONFIG_ID } from './settings';
 import { errShowErrorMessage } from './errors';
 
 import assert = require('assert');
 
 var c4dOutputChannel: undefined | vscode.OutputChannel;
+
+function delay(time: number) {
+    return new Promise(resolve => setTimeout(resolve, time));
+  } 
+  
 
 export function setC4dScriptContentCmd(data: SET_SCRIPT_CONTENT)
 {
@@ -89,7 +94,10 @@ export function addToC4DConsoleCmd(data: string)
 export async function LoadScriptContentInScriptManager()
 {   
     if (client === undefined)
-    { throw new Error("Client is not created"); }
+    { 
+        errShowErrorMessage("Client is not connect");
+        throw new Error("Client is not created"); 
+    }
 
     let doc: vscode.TextDocument = getActiveDocument(["file", "c4dfs", "untitled"]);
 
@@ -100,7 +108,10 @@ export async function LoadScriptContentInScriptManager()
 export async function ExecuteScriptContentInScriptManager()
 {
     if (client === undefined)
-    { throw new Error("Client is not connect"); }
+    { 
+        errShowErrorMessage("Client is not connect");
+        throw new Error("Client is not connect"); 
+    }
 
     let doc: vscode.TextDocument = getActiveDocument(["file", "c4dfs", "untitled"]);
 
@@ -111,57 +122,91 @@ export async function ExecuteScriptContentInScriptManager()
 export async function DebugScriptContentInScriptManager()
 {
     if (client === undefined)
-    { throw new Error("Client is not connect"); }
+    { 
+        errShowErrorMessage("Client is not connect");
+        throw new Error("Client is not connect"); 
+    }
  
     let doc: vscode.TextDocument = getActiveDocument(["file"]);
-
-    let pid = await client.getPID();
-    if (pid === undefined)
-    { throw new Error("Unable to retrieve Cinema 4D Process ID"); }
     
     let c4dPath = await client.getPath();
     if (c4dPath === undefined)
-    { throw new Error("Unable to retrieve Cinema 4D path"); }
+    { 
+        errShowErrorMessage("Unable to retrieve Cinema 4D path");
+        throw new Error("Unable to retrieve Cinema 4D path"); 
+    }
 
     let pythonPath = getPythonExecutablePath(c4dPath);
-
     if (!fs.existsSync(pythonPath))
-    {  throw new Error("Incorrect path for the c4d python executable, debugger will not work."); }
+    { 
+        errShowErrorMessage("Incorrect path for the c4d python executable, debugger will not work.");
+        throw new Error("Incorrect path for the c4d python executable, debugger will not work."); 
+    }
     
     let debugAdapterPath = path.posix.join(getPythonFolder(c4dPath), "debugpy", "adapter");
+    if (!fs.existsSync(debugAdapterPath))
+    {  
+        errShowErrorMessage("Incorrect path for the debugpy, debugger will not work.");
+        throw new Error("Incorrect path for the debugpy, debugger will not work.");
+    }
 
-    if (!fs.existsSync(pythonPath))
-    {  throw new Error("Incorrect path for the debugpy, debugger will not work."); }
+    let debugIp = vscode.workspace.getConfiguration().get(C4D_DEBUG_IP_CONFIG_ID, "localhost");
+    let debugPort = vscode.workspace.getConfiguration().get(C4D_DEBUG_PORT_CONFIG_ID, 5678);
 
-    let configName = `Python attached to Cinema 4D - PID ${pid}`;
-    let configuration: vscode.DebugConfiguration = 
+    let configName = `Python attached to Cinema 4D - TCP: localhost:${debugPort}}`;
+    let configuration = 
     {
         name: configName,
         request: "attach",
         type: 'python',
-        processId: pid,
         localRoot: fixPath(path.dirname(doc.uri.fsPath)),
         remoteRoot: fixPath(path.dirname(doc.uri.fsPath)),
-        stopOnEntry: false,
         justMyCode: true,
-        logToFile: "true",
         debugAdapterPath : debugAdapterPath,
-        pythonPath : pythonPath
+        pythonPath : pythonPath,
+        connect: {host: debugIp, port: debugPort}
     };
 
+    if (configName === undefined)
+    {
+        errShowErrorMessage("Failed to define debugger configuration.");
+        throw new Error("Failed to define debugger configuration.");
+    }
+
+    // Debugger is already runing, just execute the script
     if (vscode.debug.activeDebugSession?.configuration.name === configName)
     {
-        client.executeInC4D(doc, undefined, true).catch(errShowErrorMessage);
+        client.executeInC4D(doc, undefined, false).catch(errShowErrorMessage);
     }
     else
     {
+        // Start the debugger server on Cinema 4D if needed
+        // https://stackoverflow.com/a/67065084
+        let startDebuggerIfNeeded = `import debugpy
+import sys
+if not (hasattr(sys, 'gettrace') and sys.gettrace() is not None):  
+  debugpy.configure(python=debugpy.GetInternalPythonPath())
+  debugpy.listen(("${debugIp}", ${debugPort}))
+`;
+        client.executeScriptInC4d(startDebuggerIfNeeded);
+
+        // Finally start the debugg client session, but first wait 5 sec,
+        // so the debugger have enough time to start on Cinenam 4D side
+        await delay(3000);
         vscode.debug.startDebugging(undefined, configuration).then((res: boolean) =>
         {
+            // And when it started, execute our script :D
             if (res)
-            { client.executeInC4D(doc, undefined, true); }
+            {
+                client.executeInC4D(doc, undefined, false);
+            }
             else
-            { errShowErrorMessage("Failed to start the debugger"); }
-            
+            { 
+                errShowErrorMessage("Failed to start the debugger"); 
+            }
+        }, (reason:any) => 
+        {
+            errShowErrorMessage(reason);
         }).then(undefined, errShowErrorMessage);    
     }
 }
