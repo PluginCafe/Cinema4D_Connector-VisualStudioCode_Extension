@@ -130,17 +130,16 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
     globalState = context.globalState;
 	context.globalState.setKeysForSync([C4D_ASK_DEFINE_PATH_ID, C4D_CALL_GET_PATH_ON_CONNECT_ID]);
 
+    let shouldUpdateOnConnect = vscode.workspace.getConfiguration().get(C4D_SHOULD_UPDATE_PATH_CONFIG_ID, true);
+    context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, shouldUpdateOnConnect);
+
 	let c4dPath = vscode.workspace.getConfiguration().get(C4D_PATH_CONFIG_ID, "");
-	let shouldUpdateOnConnect = vscode.workspace.getConfiguration().get(C4D_SHOULD_UPDATE_PATH_CONFIG_ID, true);
-    if ((context.globalState.get(C4D_ASK_DEFINE_PATH_ID, false) || fs.existsSync(c4dPath)) && !shouldUpdateOnConnect)
-	{   
-        context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, false);
-        setPythonExtraPath();
+	if (fs.existsSync(c4dPath)) {
         return;
     }
-    else
-    {
-        context.globalState.update(C4D_CALL_GET_PATH_ON_CONNECT_ID, true);
+
+    if (!context.globalState.get(C4D_ASK_DEFINE_PATH_ID, false)) {   
+        return;
     }
 
     vscode.window.showInformationMessage(
@@ -167,6 +166,10 @@ export function checkAndAskCinema4DDir(context: vscode.ExtensionContext)
                             return ;
                         }
                     });
+            }
+            else
+            {
+                context.globalState.update(C4D_ASK_DEFINE_PATH_ID, true);
             }
     });
 }
