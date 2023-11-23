@@ -13,9 +13,14 @@ var c4dOutputChannel: undefined | vscode.OutputChannel;
 
 function delay(time: number) {
     return new Promise(resolve => setTimeout(resolve, time));
-  } 
-  
+}
 
+function stringContentIsEqual(stringA: string, stringB: string) {
+    stringA = stringA.replace(/[\r]+/g, ``);
+    stringB = stringA.replace(/[\r]+/g, ``);
+    return stringA === stringB; 
+}
+  
 export function setC4dScriptContentCmd(data: SET_SCRIPT_CONTENT)
 {
     try
@@ -29,13 +34,19 @@ export function setC4dScriptContentCmd(data: SET_SCRIPT_CONTENT)
 
             vscode.workspace.openTextDocument(newPath).then(doc => 
                 {
-                    const edit = new vscode.WorkspaceEdit();
-                    edit.replace(
-                        doc.uri,
-                        new vscode.Range(0, 0, doc.lineCount, 0),
-                        buffer.toString());
-            
-                    vscode.workspace.applyEdit(edit);
+                    const stringBuffer = buffer.toString();
+                    const stringInFile = doc.getText();
+                    if (!stringContentIsEqual(stringInFile, stringBuffer))
+                    {
+                        const edit = new vscode.WorkspaceEdit();
+                        edit.replace(
+                            doc.uri,
+                            new vscode.Range(0, 0, doc.lineCount, 0),
+                            stringBuffer);
+                
+                        vscode.workspace.applyEdit(edit);
+                    }
+
                     vscode.window.showTextDocument(doc);
                 });
         }
@@ -46,13 +57,19 @@ export function setC4dScriptContentCmd(data: SET_SCRIPT_CONTENT)
 
             vscode.workspace.openTextDocument(newPath).then(doc => 
                 {
-                    const edit = new vscode.WorkspaceEdit();
-                    edit.replace(
-                        doc.uri,
-                        new vscode.Range(0, 0, doc.lineCount, 0),
-                        buffer.toString());
-            
-                    vscode.workspace.applyEdit(edit);
+                    const stringBuffer = buffer.toString();
+                    const stringInFile = doc.getText();
+                    if (!stringContentIsEqual(stringInFile, stringBuffer))
+                    {
+                        const edit = new vscode.WorkspaceEdit();
+                        edit.replace(
+                            doc.uri,
+                            new vscode.Range(0, 0, doc.lineCount, 0),
+                            stringBuffer);
+                
+                        vscode.workspace.applyEdit(edit);
+                    }
+                    
                     vscode.window.showTextDocument(doc);
                 });
         }
@@ -185,7 +202,7 @@ export async function DebugScriptContentInScriptManager()
         let startDebuggerIfNeeded = `import debugpy
 import sys
 if not (hasattr(sys, 'gettrace') and sys.gettrace() is not None):  
-  debugpy.configure(python=debugpy.GetInternalPythonPath())
+  debugpy.configure(python=r"${pythonPath}")
   debugpy.listen(("${debugIp}", ${debugPort}))
 `;
         client.executeScriptInC4d(startDebuggerIfNeeded);
